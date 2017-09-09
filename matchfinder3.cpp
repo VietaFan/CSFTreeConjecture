@@ -169,8 +169,6 @@ bool compareTreeCSFs(int numVertices, vector<uint64_t> &trees, int comparisonLev
 		}
 	#endif
 	#endif
-	/*cout << "comparing trees with comparison level " << comparisonLevel << endl;
-	cout << trees.size() << " trees.\n";*/
 	for (uint64_t packedTree: trees) {
 		unpackTree(numVertices, packedTree, tree);
 		initChildLists(numVertices, tree, chlist);
@@ -232,12 +230,6 @@ bool searchTreesDegSeq(vector<int> &degSeq, int threadID, unordered_map<uint64_t
 	for (int i=0; i<degSeq.size(); ++i)
 		numVertices += degSeq[i];
 	vector<uint64_t> trees;
-	/*#ifdef VERBOSITY_2
-	pthread_mutex_lock(&outputMutex);
-	cout << "[thread " << threadID << "]: Searching degree sequence " << degSeq << ".\n";
-	cout << "[thread " << threadID << "]: Generating trees...\n";
-	pthread_mutex_unlock(&outputMutex);
-	#endif*/
 	generateTrees(degSeq, trees, subtreesDP);
 	pthread_mutex_lock(&outputMutex);
 	if (trees.size() > dsSizeRecord) {
@@ -248,19 +240,9 @@ bool searchTreesDegSeq(vector<int> &degSeq, int threadID, unordered_map<uint64_t
 	#ifdef VERBOSITY_2
 	pthread_mutex_lock(&outputMutex);
 	cout << "[thread " << threadID << "]: " << trees.size() << " trees with degree sequence " << degSeq << " found.\n";
-	//cout << "[thread " << threadID << "]: Comparing CSFs of these trees...\n";
 	pthread_mutex_unlock(&outputMutex);
 	#endif
 	bool allDistinct = compareTreeCSFs(numVertices, trees, 0, threadID);
-	/*#ifdef VERBOSITY_2
-	pthread_mutex_lock(&outputMutex);
-	if (allDistinct) {
-		cout << "[thread " << threadID << "]: The conjecture holds for trees with degree sequence " << degSeq << ".\n";
-	} else {
-		cout << "[thread " << threadID << "]: Potential counterexample found with degree sequence " << degSeq << ".\n";
-	}
-	pthread_mutex_unlock(&outputMutex);
-	#endif*/
 	#ifdef VERBOSITY_1
 	pthread_mutex_lock(&progressMutex);
 	treesSearched += trees.size();
@@ -304,11 +286,6 @@ void *worker(void *arg) {
 			degSeqs.pop_back();
 		}
 		pthread_mutex_unlock(&degseqMutex);
-		/*#ifdef VERBOSITY_2
-		pthread_mutex_lock(&outputMutex);
-		cout << "[thread " << id << "]: Working on sequences " << sequences << ".\n";
-		pthread_mutex_unlock(&outputMutex);
-		#endif*/
 		for (int i=0; i<sequences.size(); ++i) {
 			results.push_back(searchTreesDegSeq(sequences[i], id, subtreesDP));
 		}
@@ -353,7 +330,6 @@ bool testConjecture(int n, int nthreads) {
 	pthread_attr_init(&attributes);
 	pthread_attr_setdetachstate(&attributes, PTHREAD_CREATE_JOINABLE);
 	
-	//clock_t T0 = clock()/1000, checkTime = T0+CHECK_INTERVAL, updateTime = T0+UPDATE_INTERVAL;
 	time_t T0;
 	time(&T0);
 	time_t checkTime = T0+CHECK_INTERVAL, updateTime = T0+UPDATE_INTERVAL;
@@ -367,35 +343,7 @@ bool testConjecture(int n, int nthreads) {
 	cout << "[main thread]: All child threads created.\n";
 	pthread_mutex_unlock(&outputMutex);
 	#endif 
-	
-	/*
-	#ifdef VERBOSITY_1
-	bool inProgress = true;
-	time_t currentTime;
-	while (inProgress) {
-		time(&currentTime);
-		//currentTime = clock()/1000;
-		if (currentTime >= checkTime) {
-			pthread_mutex_lock(&progressMutex);
-			if (treesSearched == NUM_TREES[n]) {
-				inProgress = false;
-			}
-			pthread_mutex_unlock(&progressMutex);
-			checkTime += CHECK_INTERVAL;
-		}
-		if (currentTime >= updateTime) {
-			pthread_mutex_lock(&progressMutex);
-			cout << "[main thread]: Time elapsed: " << currentTime-T0 << " s.\n";
-			cout << "[main thread]: " << treesSearched << " of " << NUM_TREES[n] << " trees searched.\n";
-			cout << "[main thread]: " << degseqsSearched << " of " << numSequences << " degree sequences searched.\n";
-			cout << "[main thread]: Current rate: " << treesSearched/(currentTime-T0) << " trees per second.\n";
-			pthread_mutex_unlock(&progressMutex);
-			updateTime += UPDATE_INTERVAL;
-		}
-	}
-	#endif
-	*/
-	
+		
 	pthread_attr_destroy(&attributes);
 	
 	void *status;
@@ -404,14 +352,12 @@ bool testConjecture(int n, int nthreads) {
 	}
 	time_t Tf;
 	time(&Tf);
-	//clock_t Tf = clock()/1000;
 	
 	pthread_mutex_destroy(&outputMutex);
 	pthread_mutex_destroy(&degseqMutex);
 	pthread_mutex_destroy(&resultsMutex);
 	pthread_mutex_destroy(&ctrexMutex);
 	pthread_mutex_destroy(&progressMutex);
-	//pthread_exit(NULL);
 	delete[] threads;
 	delete[] threadIDs;
 	getDegreeSequences(n, degSeqs);
