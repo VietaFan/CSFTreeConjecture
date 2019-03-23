@@ -7,4 +7,6 @@ The files Tree.h, Tree.cpp, TreeGenerator.h, and TreeGenerator.cpp are slightly 
 
 The file matchfinder2.cpp contains the main code from our most recent computational verification of Stanley's conjecture on trees with at most 28 vertices. The other files contain code from other, previous attempts.
 
+(Update: We ran our program with additional computation time to extend the computational verification of Stanley's conjecture from trees on 28 vertices to 29-vertex trees.)
+
 
